@@ -1,4 +1,6 @@
 # PurdueAirShare
+Final Project for Tech 120: Design in Thinking Technology 
+
 Developed a full-stack prototype that enables Purdue students to book cost-shared aircraft or ground rides to major cities (e.g., Chicago, Indianapolis).
 Built with FastAPI (Python) for backend APIs and React Native + Expo for a modern, cross-platform mobile UI.
 
