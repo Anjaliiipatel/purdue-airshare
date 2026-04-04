@@ -33,6 +33,18 @@ const techStack = [
 ];
 
 export default function Index() {
+  const [flights, setFlights] = useState<Flight[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("flights")
+      .select("*")
+      .order("departure_date")
+      .then(({ data }) => {
+        if (data) setFlights(data as Flight[]);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
