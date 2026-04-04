@@ -1,16 +1,23 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Plane, Shield, Zap, Code2, Server, Smartphone, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FlightSearch from "@/components/FlightSearch";
 import RouteCard from "@/components/RouteCard";
 import heroImage from "@/assets/hero-aircraft.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
-const routes = [
-  { from: "KLAF", to: "KORD", fromName: "Lafayette", toName: "Chicago", duration: "1h 10m", price: 85, seats: 3, aircraft: "Cessna 172" },
-  { from: "KLAF", to: "KIND", fromName: "Lafayette", toName: "Indianapolis", duration: "0h 40m", price: 55, seats: 2, aircraft: "Piper Cherokee" },
-  { from: "KLAF", to: "KDTW", fromName: "Lafayette", toName: "Detroit", duration: "1h 30m", price: 95, seats: 4, aircraft: "Cessna 182" },
-  { from: "KLAF", to: "KCMH", fromName: "Lafayette", toName: "Columbus", duration: "1h 15m", price: 75, seats: 2, aircraft: "Diamond DA40" },
-];
+interface Flight {
+  id: string;
+  from_code: string;
+  to_code: string;
+  from_name: string;
+  to_name: string;
+  duration: string;
+  price: number;
+  available_seats: number;
+  aircraft: string;
+}
 
 const steps = [
   { icon: Plane, title: "Search Routes", desc: "Browse available flights from Purdue Airport (KLAF) to major cities." },
