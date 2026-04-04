@@ -1,16 +1,23 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Plane, Shield, Zap, Code2, Server, Smartphone, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FlightSearch from "@/components/FlightSearch";
 import RouteCard from "@/components/RouteCard";
 import heroImage from "@/assets/hero-aircraft.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
-const routes = [
-  { from: "KLAF", to: "KORD", fromName: "Lafayette", toName: "Chicago", duration: "1h 10m", price: 85, seats: 3, aircraft: "Cessna 172" },
-  { from: "KLAF", to: "KIND", fromName: "Lafayette", toName: "Indianapolis", duration: "0h 40m", price: 55, seats: 2, aircraft: "Piper Cherokee" },
-  { from: "KLAF", to: "KDTW", fromName: "Lafayette", toName: "Detroit", duration: "1h 30m", price: 95, seats: 4, aircraft: "Cessna 182" },
-  { from: "KLAF", to: "KCMH", fromName: "Lafayette", toName: "Columbus", duration: "1h 15m", price: 75, seats: 2, aircraft: "Diamond DA40" },
-];
+interface Flight {
+  id: string;
+  from_code: string;
+  to_code: string;
+  from_name: string;
+  to_name: string;
+  duration: string;
+  price: number;
+  available_seats: number;
+  aircraft: string;
+}
 
 const steps = [
   { icon: Plane, title: "Search Routes", desc: "Browse available flights from Purdue Airport (KLAF) to major cities." },
@@ -26,6 +33,18 @@ const techStack = [
 ];
 
 export default function Index() {
+  const [flights, setFlights] = useState<Flight[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("flights")
+      .select("*")
+      .order("departure_date")
+      .then(({ data }) => {
+        if (data) setFlights(data as Flight[]);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -87,8 +106,20 @@ export default function Index() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {routes.map((route, i) => (
-            <RouteCard key={route.to} {...route} delay={i * 0.1} />
+          {flights.map((flight, i) => (
+            <RouteCard
+              key={flight.id}
+              from={flight.from_code}
+              to={flight.to_code}
+              fromName={flight.from_name}
+              toName={flight.to_name}
+              duration={flight.duration}
+              price={flight.price}
+              seats={flight.available_seats}
+              aircraft={flight.aircraft}
+              flightId={flight.id}
+              delay={i * 0.1}
+            />
           ))}
         </div>
       </section>

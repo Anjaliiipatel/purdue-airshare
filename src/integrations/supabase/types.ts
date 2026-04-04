@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          flight_id: string
+          id: string
+          passengers: number
+          status: string
+          total_price: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          flight_id: string
+          id?: string
+          passengers?: number
+          status?: string
+          total_price: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          flight_id?: string
+          id?: string
+          passengers?: number
+          status?: string
+          total_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_flight_id_fkey"
+            columns: ["flight_id"]
+            isOneToOne: false
+            referencedRelation: "flights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flights: {
+        Row: {
+          aircraft: string
+          available_seats: number
+          created_at: string
+          departure_date: string
+          departure_time: string | null
+          duration: string
+          from_code: string
+          from_name: string
+          id: string
+          price: number
+          to_code: string
+          to_name: string
+          total_seats: number
+        }
+        Insert: {
+          aircraft: string
+          available_seats?: number
+          created_at?: string
+          departure_date: string
+          departure_time?: string | null
+          duration: string
+          from_code: string
+          from_name: string
+          id?: string
+          price: number
+          to_code: string
+          to_name: string
+          total_seats?: number
+        }
+        Update: {
+          aircraft?: string
+          available_seats?: number
+          created_at?: string
+          departure_date?: string
+          departure_time?: string | null
+          duration?: string
+          from_code?: string
+          from_name?: string
+          id?: string
+          price?: number
+          to_code?: string
+          to_name?: string
+          total_seats?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
