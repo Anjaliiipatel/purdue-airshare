@@ -106,8 +106,20 @@ export default function Index() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {routes.map((route, i) => (
-            <RouteCard key={route.to} {...route} delay={i * 0.1} />
+          {flights.map((flight, i) => (
+            <RouteCard
+              key={flight.id}
+              from={flight.from_code}
+              to={flight.to_code}
+              fromName={flight.from_name}
+              toName={flight.to_name}
+              duration={flight.duration}
+              price={flight.price}
+              seats={flight.available_seats}
+              aircraft={flight.aircraft}
+              flightId={flight.id}
+              delay={i * 0.1}
+            />
           ))}
         </div>
       </section>
