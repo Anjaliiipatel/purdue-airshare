@@ -5,7 +5,8 @@ import Navbar from "@/components/Navbar";
 import FlightSearch from "@/components/FlightSearch";
 import RouteCard from "@/components/RouteCard";
 import heroImage from "@/assets/hero-aircraft.jpg";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { searchFlights, type FlightSearchFilters } from "@/lib/flight-search";
 
 interface Flight {
   id: string;
@@ -34,16 +35,38 @@ const techStack = [
 
 export default function Index() {
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [filters, setFilters] = useState<FlightSearchFilters | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    supabase
-      .from("flights")
-      .select("*")
-      .order("departure_date")
-      .then(({ data }) => {
-        if (data) setFlights(data as Flight[]);
-      });
-  }, []);
+    const controller = new AbortController();
+    const loadFlights = async () => {
+      setLoading(true);
+      setError(null);
+      setFlights([]);
+      try {
+        const { data, error: queryError } = await searchFlights(filters, controller.signal);
+        if (controller.signal.aborted) return;
+        if (queryError) throw queryError;
+        setFlights(data ?? []);
+      } catch {
+        if (!controller.signal.aborted) {
+          setError("Flight data is temporarily unavailable. Please try again shortly.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    void loadFlights();
+    return () => controller.abort();
+  }, [filters, retry]);
+
+  const handleSearch = (nextFilters: FlightSearchFilters) => {
+    setFilters(nextFilters);
+    document.getElementById("routes")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,12 +112,12 @@ export default function Index() {
             </p>
           </motion.div>
 
-          <FlightSearch />
+          <FlightSearch onSearch={handleSearch} isLoading={loading} />
         </div>
       </section>
 
       {/* Popular Routes */}
-      <section id="routes" className="container mx-auto px-4 py-24">
+      <section id="routes" className="container mx-auto px-4 py-24 scroll-mt-20" aria-busy={loading}>
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -102,9 +125,31 @@ export default function Index() {
           className="text-center mb-12"
         >
           <span className="text-xs font-mono uppercase tracking-widest text-primary mb-2 block">Available Routes</span>
-          <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground">Popular Destinations</h2>
+          <h2 className="text-3xl md:text-4xl font-bold font-display text-foreground">{filters ? "Flight Results" : "Popular Destinations"}</h2>
+          {filters && (
+            <div className="mt-4 space-y-2">
+              <p className="text-muted-foreground font-mono text-sm">
+                {filters.from} → {filters.to} · {filters.date || "Any date"} · {filters.passengers} {filters.passengers === 1 ? "passenger" : "passengers"}
+              </p>
+              <Button variant="ghost" onClick={() => setFilters(null)}>Show all flights</Button>
+            </div>
+          )}
         </motion.div>
 
+        <div aria-live="polite" className="text-center">
+          {loading && <p role="status" className="text-muted-foreground">Loading flights...</p>}
+          {error && (
+            <div role="alert" className="space-y-4">
+              <p className="text-destructive">{error}</p>
+              <Button variant="outline" onClick={() => setRetry((value) => value + 1)}>Try again</Button>
+            </div>
+          )}
+          {!loading && !error && flights.length === 0 && (
+            <p role="status" className="text-muted-foreground">
+              {filters ? "No flights match this route, date, and passenger count." : "No flights are currently listed."}
+            </p>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {flights.map((flight, i) => (
             <RouteCard

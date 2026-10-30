@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plane, ArrowRight, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { FlightSearchFilters } from "@/lib/flight-search";
 
 const airports = [
   { code: "KLAF", name: "Purdue University" },
@@ -11,10 +12,13 @@ const airports = [
   { code: "KCMH", name: "Columbus, OH" },
 ];
 
-export default function FlightSearch() {
+export default function FlightSearch({ onSearch, isLoading }: {
+  onSearch: (filters: FlightSearchFilters) => void;
+  isLoading: boolean;
+}) {
   const [from, setFrom] = useState("KLAF");
   const [to, setTo] = useState("KORD");
-  const [date, setDate] = useState("2025-11-28");
+  const [date, setDate] = useState("");
   const [passengers, setPassengers] = useState(2);
 
   return (
@@ -24,7 +28,13 @@ export default function FlightSearch() {
       transition={{ duration: 0.7, delay: 0.3 }}
       className="w-full max-w-4xl mx-auto"
     >
-      <div className="surface-elevated border border-border rounded-2xl p-6 md:p-8 glow-gold">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSearch({ from, to, date, passengers });
+        }}
+        className="surface-elevated border border-border rounded-2xl p-6 md:p-8 glow-gold"
+      >
         <div className="flex items-center gap-2 mb-6">
           <Plane className="w-5 h-5 text-primary" />
           <span className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
@@ -35,10 +45,18 @@ export default function FlightSearch() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* From */}
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-wider font-mono">From</label>
+            <label htmlFor="flight-from" className="text-xs text-muted-foreground uppercase tracking-wider font-mono">From</label>
             <select
+              id="flight-from"
               value={from}
-              onChange={(e) => setFrom(e.target.value)}
+              onChange={(e) => {
+                const nextFrom = e.target.value;
+                setFrom(nextFrom);
+                if (nextFrom === to) {
+                  const alternative = airports.find((airport) => airport.code !== nextFrom);
+                  if (alternative) setTo(alternative.code);
+                }
+              }}
               className="w-full bg-background border border-border rounded-lg px-4 py-3 font-mono text-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {airports.map((a) => (
@@ -61,8 +79,9 @@ export default function FlightSearch() {
 
           {/* To */}
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-wider font-mono">To</label>
+            <label htmlFor="flight-to" className="text-xs text-muted-foreground uppercase tracking-wider font-mono">To</label>
             <select
+              id="flight-to"
               value={to}
               onChange={(e) => setTo(e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-4 py-3 font-mono text-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -80,29 +99,31 @@ export default function FlightSearch() {
 
           {/* Search Button */}
           <div className="flex items-end">
-            <Button className="w-full h-[50px] text-base font-semibold">
-              Search Flights
+            <Button type="submit" disabled={isLoading} className="w-full h-[50px] text-base font-semibold">
+              {isLoading ? "Searching..." : "Search Flights"}
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-wider font-mono flex items-center gap-1">
-              <Calendar className="w-3 h-3" /> Date
+            <label htmlFor="flight-date" className="text-xs text-muted-foreground uppercase tracking-wider font-mono flex items-center gap-1">
+              <Calendar className="w-3 h-3" /> Date (optional)
             </label>
             <input
               type="date"
+              id="flight-date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full bg-background border border-border rounded-lg px-4 py-2.5 font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-wider font-mono flex items-center gap-1">
+            <label htmlFor="flight-passengers" className="text-xs text-muted-foreground uppercase tracking-wider font-mono flex items-center gap-1">
               <Users className="w-3 h-3" /> Passengers
             </label>
             <select
+              id="flight-passengers"
               value={passengers}
               onChange={(e) => setPassengers(Number(e.target.value))}
               className="w-full bg-background border border-border rounded-lg px-4 py-2.5 font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -113,7 +134,7 @@ export default function FlightSearch() {
             </select>
           </div>
         </div>
-      </div>
+      </form>
     </motion.div>
   );
 }
